@@ -1,0 +1,2483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>筑梦乡村实践团 · 三下乡</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        body {
+            background: #f5f7fb;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+        #app {
+            max-width: 1200px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            padding: 24px 32px 40px;
+            position: relative;
+        }
+        .nav-bar {
+            display: flex;
+            gap: 8px;
+            background: #f0f2f6;
+            border-radius: 60px;
+            padding: 6px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .nav-item {
+            flex: 1 0 auto;
+            padding: 12px 20px;
+            border-radius: 40px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 15px;
+            color: #4a4f5e;
+            cursor: pointer;
+            transition: all 0.25s;
+            background: transparent;
+            border: none;
+            min-width: 70px;
+            letter-spacing: 0.3px;
+            position: relative;
+        }
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.6);
+            color: #1e293b;
+        }
+        .nav-item.active {
+            background: #ffffff;
+            color: #1a4d8f;
+            box-shadow: 0 4px 12px rgba(26, 77, 143, 0.12);
+            font-weight: 700;
+        }
+        .nav-item .login-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #2a7d4f;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+        .nav-item .login-dot.off {
+            background: #b0b8c4;
+        }
+        .page {
+            display: none;
+            animation: fadeUp 0.3s ease;
+        }
+        .page.active {
+            display: block;
+        }
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 20px 24px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            border: 1px solid #eef1f5;
+            transition: box-shadow 0.2s;
+        }
+        .card:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+        }
+        .home-top {
+            display: flex;
+            gap: 28px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+        .home-top .left {
+            flex: 1.2;
+            min-width: 260px;
+        }
+        .home-top .right {
+            flex: 1;
+            min-width: 220px;
+            max-height: 400px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .carousel-wrapper {
+            position: relative;
+            border-radius: 18px;
+            overflow: hidden;
+            background: #eef1f5;
+            aspect-ratio: 16 / 10;
+            cursor: pointer;
+        }
+        .carousel-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: opacity 0.4s;
+        }
+        .carousel-controls {
+            position: absolute;
+            bottom: 14px;
+            right: 14px;
+            display: flex;
+            gap: 8px;
+        }
+        .carousel-controls button {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            border: none;
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .carousel-controls button:hover {
+            background: rgba(0, 0, 0, 0.75);
+        }
+        .link-list {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 4px;
+            max-height: 400px;
+        }
+        .link-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .link-list::-webkit-scrollbar-thumb {
+            background: #d0d5de;
+            border-radius: 8px;
+        }
+        .link-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: #f8faff;
+            margin-bottom: 8px;
+            border: 1px solid #e8edf4;
+            transition: 0.15s;
+            text-decoration: none;
+            color: #1e293b;
+            font-size: 14px;
+            position: relative;
+            cursor: pointer;
+        }
+        .link-item:hover {
+            background: #eef4ff;
+            border-color: #b3c9ff;
+        }
+        .link-item .idx {
+            font-weight: 600;
+            color: #8b9bb5;
+            margin-right: 14px;
+            font-size: 13px;
+            min-width: 24px;
+        }
+        .link-item .title {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .link-item .badge {
+            background: #dce3ef;
+            color: #2d3a4f;
+            font-size: 11px;
+            padding: 2px 12px;
+            border-radius: 30px;
+            margin-left: 10px;
+            white-space: nowrap;
+        }
+        .link-item .delete-btn {
+            margin-left: 8px;
+            background: #d9454a;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 14px;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .link-item .delete-btn:hover {
+            background: #b8373c;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .pagination button {
+            background: #eef1f5;
+            border: none;
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #2d3a4f;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .pagination button:hover {
+            background: #d6deeb;
+        }
+        .pagination button.active-page {
+            background: #1a4d8f;
+            color: #fff;
+        }
+        .achievements {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            margin-top: 12px;
+        }
+        .achieve-card {
+            background: #fafcff;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 1px solid #eef1f5;
+            cursor: pointer;
+            transition: 0.2s;
+            position: relative;
+        }
+        .achieve-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+        }
+        .achieve-card img {
+            width: 100%;
+            aspect-ratio: 16/10;
+            object-fit: cover;
+            display: block;
+            background: #eef1f5;
+        }
+        .achieve-card .info {
+            padding: 14px 16px 18px;
+        }
+        .achieve-card .info h4 {
+            font-size: 16px;
+            color: #0b1e33;
+            margin-bottom: 6px;
+        }
+        .achieve-card .info p {
+            font-size: 13px;
+            color: #5a6a7e;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .achieve-card .delete-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #d9454a;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 18px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        .achieve-card .delete-btn:hover {
+            background: #b8373c;
+        }
+        .section-title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 700;
+            color: #0b1e33;
+            margin: 28px 0 16px;
+            padding-bottom: 8px;
+            border-bottom: 3px solid #1a4d8f;
+            display: inline-block;
+            width: 100%;
+        }
+        .product-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 6px;
+        }
+        .product-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .product-list::-webkit-scrollbar-thumb {
+            background: #d0d5de;
+            border-radius: 8px;
+        }
+        .product-row {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            background: #fafcff;
+            border-radius: 16px;
+            padding: 14px 20px;
+            border: 1px solid #e8edf4;
+            cursor: pointer;
+            transition: 0.15s;
+            flex-wrap: wrap;
+            position: relative;
+        }
+        .product-row:hover {
+            background: #f2f7ff;
+            border-color: #c6d8f5;
+        }
+        .product-row .logo {
+            width: 64px;
+            height: 64px;
+            border-radius: 14px;
+            object-fit: cover;
+            background: #eef1f5;
+            flex-shrink: 0;
+            border: 1px solid #e0e6ef;
+        }
+        .product-row .pname {
+            font-weight: 700;
+            font-size: 17px;
+            color: #0b1e33;
+            min-width: 70px;
+            flex-shrink: 0;
+        }
+        .product-row .pdesc {
+            color: #5a6a7e;
+            font-size: 14px;
+            flex: 1;
+            min-width: 100px;
+        }
+        .product-row .delete-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #d9454a;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            font-size: 16px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .product-row .delete-btn:hover {
+            background: #b8373c;
+        }
+        .enterprise-list {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 6px;
+        }
+        .enterprise-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .enterprise-list::-webkit-scrollbar-thumb {
+            background: #d0d5de;
+            border-radius: 8px;
+        }
+        .ent-card {
+            background: #fafcff;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 1px solid #eef1f5;
+            cursor: pointer;
+            transition: 0.2s;
+            position: relative;
+        }
+        .ent-card:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+        }
+        .ent-card img {
+            width: 100%;
+            aspect-ratio: 16/7;
+            object-fit: cover;
+            background: #eef1f5;
+            display: block;
+        }
+        .ent-card .info {
+            padding: 16px 22px 20px;
+        }
+        .ent-card .info h4 {
+            font-size: 18px;
+            color: #0b1e33;
+            margin-bottom: 4px;
+        }
+        .ent-card .info p {
+            font-size: 14px;
+            color: #5a6a7e;
+        }
+        .ent-card .delete-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #d9454a;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 18px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        .ent-card .delete-btn:hover {
+            background: #b8373c;
+        }
+        .factory-map {
+            width: 100%;
+            aspect-ratio: 16/6;
+            background: #e8edf4;
+            border-radius: 18px;
+            overflow: hidden;
+            margin-bottom: 24px;
+            border: 1px solid #e0e6ef;
+            cursor: pointer;
+            position: relative;
+        }
+        .factory-map img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .factory-map .placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #8b9bb5;
+            font-size: 16px;
+            background: #eef1f5;
+        }
+        .factory-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-height: 480px;
+            overflow-y: auto;
+            padding-right: 6px;
+        }
+        .factory-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .factory-list::-webkit-scrollbar-thumb {
+            background: #d0d5de;
+            border-radius: 8px;
+        }
+        .factory-row {
+            background: #fafcff;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #eef1f5;
+            cursor: pointer;
+            transition: 0.15s;
+            position: relative;
+        }
+        .factory-row:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+        }
+        .factory-row img {
+            width: 100%;
+            aspect-ratio: 16/6;
+            object-fit: cover;
+            background: #eef1f5;
+            display: block;
+        }
+        .factory-row .info {
+            padding: 14px 20px 18px;
+        }
+        .factory-row .info p {
+            font-size: 14px;
+            color: #2d3a4f;
+            margin-bottom: 2px;
+        }
+        .factory-row .info p strong {
+            color: #0b1e33;
+        }
+        .factory-row .delete-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #d9454a;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 18px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        .factory-row .delete-btn:hover {
+            background: #b8373c;
+        }
+        .settings-panel {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .settings-panel .field {
+            margin-bottom: 20px;
+        }
+        .settings-panel label {
+            display: block;
+            font-weight: 600;
+            font-size: 14px;
+            color: #1e293b;
+            margin-bottom: 6px;
+        }
+        .settings-panel input[type="password"],
+        .settings-panel input[type="text"],
+        .settings-panel textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 14px;
+            border: 1px solid #dce3ef;
+            font-size: 15px;
+            background: #fafcff;
+            transition: 0.15s;
+        }
+        .settings-panel input:focus,
+        .settings-panel textarea:focus {
+            outline: none;
+            border-color: #1a4d8f;
+            box-shadow: 0 0 0 3px rgba(26, 77, 143, 0.08);
+        }
+        .btn {
+            padding: 10px 28px;
+            border-radius: 40px;
+            border: none;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.15s;
+            background: #eef1f5;
+            color: #1e293b;
+        }
+        .btn-primary {
+            background: #1a4d8f;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: #123b6e;
+        }
+        .btn-success {
+            background: #2a7d4f;
+            color: #fff;
+        }
+        .btn-success:hover {
+            background: #1f613d;
+        }
+        .btn-danger {
+            background: #d9454a;
+            color: #fff;
+        }
+        .btn-danger:hover {
+            background: #b8373c;
+        }
+        .btn-sm {
+            padding: 6px 16px;
+            font-size: 13px;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #d0d5de;
+        }
+        .btn-outline:hover {
+            background: #f0f2f6;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .mt-12 {
+            margin-top: 12px;
+        }
+        .mt-20 {
+            margin-top: 20px;
+        }
+        .mb-12 {
+            margin-bottom: 12px;
+        }
+        .flex {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .text-muted {
+            color: #7a8aa0;
+            font-size: 13px;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 30px;
+        }
+        .modal-overlay.open {
+            display: flex;
+        }
+        .modal-box {
+            background: #ffffff;
+            border-radius: 28px;
+            max-width: 700px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 32px 36px;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.2);
+            position: relative;
+            animation: modalIn 0.25s ease;
+        }
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        .modal-box .close {
+            position: sticky;
+            top: 0;
+            float: right;
+            background: #f0f2f6;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 22px;
+            cursor: pointer;
+            color: #2d3a4f;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+        .modal-box .close:hover {
+            background: #dce3ef;
+        }
+        .modal-box img {
+            width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            border-radius: 16px;
+            background: #f5f7fb;
+            margin-bottom: 16px;
+        }
+        .modal-box h2 {
+            font-size: 22px;
+            color: #0b1e33;
+            margin-bottom: 8px;
+        }
+        .modal-box .detail-text {
+            font-size: 15px;
+            color: #2d3a4f;
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+        .modal-box .detail-text strong {
+            color: #0b1e33;
+        }
+        .modal-box .delete-btn {
+            background: #d9454a;
+            color: #fff;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 12px;
+        }
+        .modal-box .delete-btn:hover {
+            background: #b8373c;
+        }
+        .editable-area {
+            border-radius: 8px;
+            padding: 2px 4px;
+            transition: 0.15s;
+            cursor: pointer;
+        }
+        .editable-area:hover {
+            background: #f0f7ff;
+            outline: 1px dashed #1a4d8f;
+        }
+        .editable-img {
+            cursor: pointer;
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .editable-img:hover::after {
+            content: '点击更换';
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.35);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+        @media (max-width: 760px) {
+            #app {
+                padding: 16px 14px 28px;
+                border-radius: 20px;
+            }
+            .nav-item {
+                font-size: 13px;
+                padding: 10px 14px;
+                min-width: 50px;
+            }
+            .home-top {
+                flex-direction: column;
+            }
+            .home-top .right {
+                max-height: 320px;
+            }
+            .product-row {
+                padding: 12px 16px;
+                gap: 12px;
+            }
+            .product-row .logo {
+                width: 50px;
+                height: 50px;
+            }
+            .modal-box {
+                padding: 24px 18px;
+                margin: 10px;
+            }
+            .achievements {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        @media (max-width: 480px) {
+            .achievements {
+                grid-template-columns: 1fr;
+            }
+            .nav-bar {
+                border-radius: 30px;
+                gap: 4px;
+                padding: 4px;
+            }
+            .nav-item {
+                font-size: 12px;
+                padding: 8px 10px;
+                min-width: 40px;
+            }
+        }
+        .hidden {
+            display: none !important;
+        }
+        .w-full {
+            width: 100%;
+        }
+        .border-top {
+            border-top: 1px solid #eef1f5;
+            padding-top: 18px;
+            margin-top: 18px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #8b9bb5;
+        }
+        .empty-state .icon {
+            font-size: 42px;
+            margin-bottom: 12px;
+        }
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #1e293b;
+            color: #fff;
+            padding: 12px 28px;
+            border-radius: 60px;
+            font-size: 15px;
+            font-weight: 500;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            z-index: 2000;
+            transition: all 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+            max-width: 90vw;
+            text-align: center;
+        }
+        #toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        #toast.success {
+            background: #2a7d4f;
+        }
+        #toast.error {
+            background: #d9454a;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <nav class="nav-bar" id="navBar">
+            <button class="nav-item active" data-page="home">🏠 首页</button>
+            <button class="nav-item" data-page="agriculture">🌾 农业</button>
+            <button class="nav-item" data-page="industry">🏭 工业</button>
+            <button class="nav-item" data-page="settings">⚙️ 设置 <span class="login-dot off" id="loginDot"></span></button>
+        </nav>
+
+        <!-- 首页 -->
+        <div class="page active" id="page-home">
+            <div class="home-top">
+                <div class="left">
+                    <div class="carousel-wrapper" id="carouselWrapper">
+                        <img id="carouselImg" src="" alt="轮播图" />
+                        <div class="carousel-controls">
+                            <button id="carouselPrev">‹</button>
+                            <button id="carouselNext">›</button>
+                        </div>
+                    </div>
+                    <div class="text-muted text-center mt-12" style="font-size:13px;">点击图片放大 · 每2秒自动切换</div>
+                </div>
+                <div class="right card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px;">
+                        <strong style="font-size:15px;color:#0b1e33;">📰 实践团推文</strong>
+                        <span class="text-muted" style="font-size:12px;" id="linkCount">0 条</span>
+                    </div>
+                    <div class="link-list" id="linkList"></div>
+                    <div class="pagination" id="linkPagination"></div>
+                </div>
+            </div>
+            <div style="margin-top:8px;">
+                <div class="flex-between mb-12">
+                    <h3 style="font-size:18px;color:#0b1e33;">✨ 主要成果</h3>
+                    <span class="text-muted" style="font-size:13px;">点击卡片查看详情</span>
+                </div>
+                <div class="achievements" id="achievementList"></div>
+            </div>
+        </div>
+
+        <!-- 农业 -->
+        <div class="page" id="page-agriculture">
+            <h2 class="section-title">🌾 农产品</h2>
+            <div class="product-list" id="agricultureList"></div>
+            <div class="text-center mt-12 text-muted" style="font-size:13px;">点击任意农产品查看详情</div>
+
+            <h2 class="section-title">🐟 水产品</h2>
+            <div class="product-list" id="fisheryList"></div>
+            <div class="text-center mt-12 text-muted" style="font-size:13px;">点击任意水产品查看详情</div>
+        </div>
+
+        <!-- 工业 -->
+        <div class="page" id="page-industry">
+            <h2 class="section-title">🏢 主要企业</h2>
+            <div class="enterprise-list" id="enterpriseList"></div>
+            <div class="text-center mt-12 text-muted" style="font-size:13px;">点击企业卡片查看详情</div>
+
+            <h2 class="section-title">🏭 空置厂房</h2>
+            <div class="factory-map" id="factoryMap">
+                <img id="factoryMapImg" src="" alt="厂房地图" />
+                <div class="placeholder" id="mapPlaceholder">🗺️ 点击上传地图图片</div>
+            </div>
+            <div class="factory-list" id="factoryList"></div>
+            <div class="text-center mt-12 text-muted" style="font-size:13px;">点击厂房卡片查看详情</div>
+        </div>
+
+        <!-- 设置 -->
+        <div class="page" id="page-settings">
+            <div class="settings-panel">
+                <div id="settingsLogin">
+                    <div class="card" style="padding:32px;">
+                        <h3 style="font-size:20px;margin-bottom:12px;">🔐 管理员验证</h3>
+                        <p class="text-muted" style="margin-bottom:20px;">请输入密码以进入设置面板，登录后即可编辑所有内容</p>
+                        <div class="field">
+                            <label>密码</label>
+                            <input type="password" id="settingsPasswordInput" placeholder="请输入密码" />
+                        </div>
+                        <button class="btn btn-primary w-full" id="settingsLoginBtn">验证身份</button>
+                        <div id="settingsLoginError" class="text-muted text-center mt-12" style="color:#d9454a;display:none;">密码错误，请重试</div>
+                    </div>
+                </div>
+                <div id="settingsPanel" style="display:none;">
+                    <div class="card" style="padding:28px;">
+                        <div class="flex-between mb-12">
+                            <h3 style="font-size:20px;">⚙️ 设置中心 <span class="text-muted" style="font-size:14px;font-weight:400;">(已登录)</span></h3>
+                            <button class="btn btn-outline btn-sm" id="settingsLogoutBtn">退出</button>
+                        </div>
+                        <div class="flex" style="margin-bottom:20px;">
+                            <button class="btn btn-success" id="saveDataBtn">💾 保存到云端</button>
+                            <span class="text-muted" style="font-size:13px;">保存后所有人可见</span>
+                        </div>
+                        <div id="storageInfo" class="text-muted" style="margin-bottom:12px;"></div>
+                        <div class="field">
+                            <label>更改密码</label>
+                            <div class="flex">
+                                <input type="text" id="settingsNewPassword" placeholder="新密码" style="flex:1;" />
+                                <button class="btn btn-primary btn-sm" id="settingsChangePwdBtn">更新密码</button>
+                            </div>
+                            <div id="pwdChangeMsg" class="text-muted mt-12" style="font-size:13px;"></div>
+                        </div>
+                        <div class="border-top"></div>
+                        <div>
+                            <div class="flex-between">
+                                <label style="font-weight:600;font-size:15px;">✏️ 编辑模式</label>
+                                <button class="btn btn-primary btn-sm" id="toggleEditModeBtn">开启编辑</button>
+                            </div>
+                            <p class="text-muted" style="font-size:13px;margin-top:6px;">开启后，点击页面上的文字或图片即可修改，并显示删除按钮。</p>
+                            <div id="editModeStatus" class="text-muted mt-12" style="font-size:13px;background:#f0f7ff;padding:8px 16px;border-radius:30px;display:inline-block;">当前：只读模式</div>
+                        </div>
+                        <div class="border-top mt-20">
+                            <h4 style="font-size:15px;margin-bottom:10px;">➕ 快速添加</h4>
+                            <div class="flex" style="gap:8px;flex-wrap:wrap;">
+                                <button class="btn btn-outline btn-sm add-btn" data-add="link">添加推文</button>
+                                <button class="btn btn-outline btn-sm add-btn" data-add="achievement">添加成果</button>
+                                <button class="btn btn-outline btn-sm add-btn" data-add="agriculture">添加农产品</button>
+                                <button class="btn btn-outline btn-sm add-btn" data-add="fishery">添加水产品</button>
+                                <button class="btn btn-outline btn-sm add-btn" data-add="enterprise">添加企业</button>
+                                <button class="btn btn-outline btn-sm add-btn" data-add="factory">添加厂房</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 模态框 -->
+        <div class="modal-overlay" id="modalOverlay">
+            <div class="modal-box" id="modalBox">
+                <button class="close" id="modalClose">✕</button>
+                <div id="modalContent"></div>
+            </div>
+        </div>
+
+        <div id="toast"></div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://epvceanobsciduswbuwb.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwdmNlYW5vYnNjaWR1c3didXdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY2MjQ5NjAsImV4cCI6MjEwMjIwMDk2MH0.RkzdJgCtdSElT8nw1CB5fG6U_3ng3Z0yPp4t4e2tGNw';
+
+        let supabaseClient = null;
+        try {
+            if (SUPABASE_URL && SUPABASE_URL !== 'https://your-project.supabase.co') {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        } catch (_) {}
+
+        const DEFAULT_DATA = {
+            carousel: [],
+            links: [
+                { title: '筑梦乡村 · 我们在行动', url: 'https://example.com/1' },
+                { title: '三下乡｜青春助力乡村振兴', url: 'https://example.com/2' },
+                { title: '田野上的新希望', url: 'https://example.com/3' },
+                { title: '走进乡村，筑梦未来', url: 'https://example.com/4' },
+                { title: '实践团日志 · 第一周', url: 'https://example.com/5' },
+                { title: '乡村调研报告', url: 'https://example.com/6' },
+            ],
+            achievements: [
+                { img: '', title: '产业振兴', desc: '推动特色农产品品牌化，助农增收' },
+                { img: '', title: '教育帮扶', desc: '开展乡村支教，点亮孩子未来' },
+                { img: '', title: '生态宜居', desc: '改善农村人居环境，建设美丽乡村' },
+                { img: '', title: '文化传承', desc: '挖掘乡土文化，留住乡愁记忆' },
+            ],
+            agriculture: [
+                { logo: '', name: '化橘红', desc: '道地药材，化痰理气', detail: '化橘红是广东化州特产，具有化痰理气、健脾消食的功效。' },
+                { logo: '', name: '毛豆', desc: '鲜嫩营养，田间绿宝', detail: '毛豆富含蛋白质和膳食纤维，是优质的植物蛋白来源。' },
+                { logo: '', name: '荔枝', desc: '岭南佳果，清甜多汁', detail: '荔枝被誉为“岭南果王”，含有丰富的维生素C和葡萄糖。' },
+                { logo: '', name: '龙眼', desc: '滋补佳品，益气养血', detail: '龙眼具有补益心脾、养血安神的功效，是传统滋补品。' },
+                { logo: '', name: '辣椒', desc: '火辣风味，提味增香', detail: '辣椒富含维生素C和辣椒素，能促进食欲，驱寒暖身。' },
+            ],
+            fishery: [
+                { logo: '', name: '叉尾鮰鱼', desc: '肉质细嫩，鲜美可口', detail: '叉尾鮰鱼是优质淡水养殖品种，肉质细嫩，营养丰富。' },
+                { logo: '', name: '罗非鱼', desc: '刺少肉多，老少皆宜', detail: '罗非鱼生长快，肉质鲜美，适合多种烹饪方式。' },
+                { logo: '', name: '澳洲龙虾', desc: '虾中贵族，鲜甜弹牙', detail: '澳洲龙虾肉质紧实，鲜甜弹牙，是高档海鲜的代表。' },
+            ],
+            enterprises: [
+                { img: '', name: '广东乡村振兴集团', intro: '专注于乡村产业投资与运营', phone: '0755-8888 6666', address: '广东省广州市天河区' },
+                { img: '', name: '绿野农业科技有限公司', intro: '智慧农业解决方案提供商', phone: '0755-8888 7777', address: '广东省深圳市南山区' },
+            ],
+            factories: [
+                { img: '', location: '化州市鉴江街道', phone: '0668-1234567', area: '1200㎡', desc: '独栋厂房，交通便利，水电齐全' },
+                { img: '', location: '高州市金山工业园', phone: '0668-2345678', area: '800㎡', desc: '标准厂房，临近高速出口' },
+                { img: '', location: '信宜市东镇街道', phone: '0668-3456789', area: '2000㎡', desc: '大型仓库，可分割出租' },
+                { img: '', location: '电白区水东镇', phone: '0668-4567890', area: '600㎡', desc: '临街厂房，适合小型加工' },
+                { img: '', location: '茂南区公馆镇', phone: '0668-5678901', area: '1500㎡', desc: '新建厂房，带宿舍办公楼' },
+                { img: '', location: '化州市河西街道', phone: '0668-6789012', area: '900㎡', desc: '独院厂房，环境安静' },
+                { img: '', location: '高州市石鼓镇', phone: '0668-7890123', area: '3000㎡', desc: '大型工业用地，可定制建设' },
+            ],
+            settings: { password: 'zmxcx0011' },
+            factoryMap: ''
+        };
+
+        let DATA = null;
+        let carouselIdx = 0;
+        let carouselTimer = null;
+        let linkPage = 0;
+        const LINK_PER_PAGE = 5;
+        let isAdminLoggedIn = false;
+        let isEditMode = false;
+
+        function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
+
+        function mergeDeep(t, s) {
+            const r = deepClone(t);
+            for (const k in s) {
+                if (s[k] && typeof s[k] === 'object' && !Array.isArray(s[k])) {
+                    r[k] = mergeDeep(r[k] || {}, s[k]);
+                } else {
+                    r[k] = s[k];
+                }
+            }
+            return r;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function showToast(msg, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = 'show';
+            if (type === 'success') toast.classList.add('success');
+            else if (type === 'error') toast.classList.add('error');
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(() => { toast.className = ''; }, 2800);
+        }
+
+        function compressImage(file, maxWidth, quality) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let w = img.width,
+                            h = img.height;
+                        if (w > maxWidth) {
+                            h = (maxWidth / w) * h;
+                            w = maxWidth;
+                        }
+                        canvas.width = w;
+                        canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, w, h);
+                        resolve(canvas.toDataURL('image/jpeg', quality));
+                    };
+                    img.onerror = () => reject(new Error('图片加载失败'));
+                    img.src = e.target.result;
+                };
+                reader.onerror = () => reject(new Error('文件读取失败'));
+            });
+        }
+
+        function loadFromLocal() {
+            const raw = localStorage.getItem('zhumeng_data');
+            if (raw) {
+                try {
+                    const parsed = JSON.parse(raw);
+                    DATA = mergeDeep(deepClone(DEFAULT_DATA), parsed);
+                    return true;
+                } catch (_) {}
+            }
+            DATA = deepClone(DEFAULT_DATA);
+            return false;
+        }
+
+        function saveToLocal() {
+            localStorage.setItem('zhumeng_data', JSON.stringify(DATA));
+        }
+
+        async function loadFromSupabase() {
+            if (!supabaseClient) return false;
+            try {
+                const { data, error } = await supabaseClient.from('app_data').select('data').eq('id', 1).single();
+                if (error) {
+                    if (error.code === 'PGRST116') {
+                        await saveToSupabase();
+                        return true;
+                    }
+                    throw error;
+                }
+                if (data && data.data) {
+                    DATA = mergeDeep(deepClone(DEFAULT_DATA), data.data);
+                    return true;
+                }
+                return false;
+            } catch (e) {
+                console.error('Supabase 加载错误:', e);
+                return false;
+            }
+        }
+
+        async function saveToSupabase() {
+            if (!supabaseClient) {
+                saveToLocal();
+                showToast('仅保存到本地 (未配置Supabase)', 'info');
+                return;
+            }
+            try {
+                const { error } = await supabaseClient
+                    .from('app_data')
+                    .upsert({ id: 1, data: DATA, updated_at: new Date().toISOString() });
+                if (error) {
+                    console.error('Supabase 保存错误详情:', error);
+                    throw error;
+                }
+                showToast('✅ 已保存到云端 + 本地', 'success');
+                saveToLocal();
+            } catch (e) {
+                console.error('保存到 Supabase 失败:', e);
+                showToast('❌ 云端保存失败：' + (e.message || e), 'error');
+                saveToLocal();
+            }
+        }
+
+        async function initData() {
+            loadFromLocal();
+            if (supabaseClient) {
+                await loadFromSupabase();
+            }
+            if (!DATA) DATA = deepClone(DEFAULT_DATA);
+        }
+
+        // ========== 渲染函数 ==========
+        function renderCarousel() {
+            const imgs = DATA.carousel || [];
+            const imgEl = document.getElementById('carouselImg');
+            if (imgs.length === 0) {
+                imgEl.src = '';
+                imgEl.alt = '暂无图片';
+                imgEl.style.objectFit = 'contain';
+                imgEl.style.background = '#eef1f5';
+                return;
+            }
+            if (carouselIdx >= imgs.length) carouselIdx = 0;
+            if (carouselIdx < 0) carouselIdx = imgs.length - 1;
+            imgEl.src = imgs[carouselIdx];
+            imgEl.alt = '轮播图 ' + (carouselIdx + 1);
+            imgEl.style.objectFit = 'cover';
+            imgEl.style.background = 'transparent';
+        }
+
+        function startCarousel() {
+            if (carouselTimer) clearInterval(carouselTimer);
+            if (DATA.carousel && DATA.carousel.length > 1) {
+                carouselTimer = setInterval(() => {
+                    carouselIdx = (carouselIdx + 1) % DATA.carousel.length;
+                    renderCarousel();
+                }, 2000);
+            }
+        }
+
+        // ========== 链接渲染（含编辑功能） ==========
+        function renderLinks() {
+            const links = DATA.links || [];
+            const container = document.getElementById('linkList');
+            const total = links.length;
+            const maxPage = Math.max(0, Math.ceil(total / LINK_PER_PAGE) - 1);
+            if (linkPage > maxPage) linkPage = maxPage;
+            const start = linkPage * LINK_PER_PAGE;
+            const end = Math.min(start + LINK_PER_PAGE, total);
+            const pageItems = links.slice(start, end);
+            if (total === 0) {
+                container.innerHTML =
+                    `<div class="empty-state"><div class="icon">📭</div><p>暂无推文链接，请登录后添加</p></div>`;
+            } else {
+                container.innerHTML = pageItems.map((item, i) => {
+                    const realIdx = start + i;
+                    const title = item.title || '未命名链接';
+                    const url = item.url || '#';
+                    return `
+                        <div class="link-item" data-idx="${realIdx}" data-url="${escapeHtml(url)}">
+                            <span class="idx">${realIdx + 1}</span>
+                            <span class="title">${escapeHtml(title)}</span>
+                            <span class="badge">${url !== '#' ? '跳转' : '无链接'}</span>
+                            ${isAdminLoggedIn && isEditMode ? `<button class="delete-btn" data-idx="${realIdx}" data-type="link">✕</button>` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+            document.getElementById('linkCount').textContent = total + ' 条';
+
+            // 分页逻辑
+            const pager = document.getElementById('linkPagination');
+            if (total <= LINK_PER_PAGE) {
+                pager.innerHTML = '';
+            } else {
+                let btns = '';
+                for (let i = 0; i <= maxPage; i++) {
+                    btns += `<button class="${i === linkPage ? 'active-page' : ''}" data-page="${i}">${i + 1}</button>`;
+                }
+                pager.innerHTML = `
+                        <button id="linkPrev" ${linkPage === 0 ? 'disabled style="opacity:0.4;"' : ''}>‹</button>
+                        ${btns}
+                        <button id="linkNext" ${linkPage === maxPage ? 'disabled style="opacity:0.4;"' : ''}>›</button>
+                    `;
+                pager.querySelectorAll('[data-page]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        linkPage = parseInt(btn.dataset.page);
+                        renderLinks();
+                    });
+                });
+                document.getElementById('linkPrev')?.addEventListener('click', () => {
+                    if (linkPage > 0) { linkPage--;
+                        renderLinks(); }
+                });
+                document.getElementById('linkNext')?.addEventListener('click', () => {
+                    if (linkPage < maxPage) { linkPage++;
+                        renderLinks(); }
+                });
+            }
+
+            // 点击事件：编辑或跳转
+            container.querySelectorAll('.link-item').forEach(el => {
+                el.addEventListener('click', function(e) {
+                    if (e.target.closest('.delete-btn')) return;
+                    const idx = parseInt(this.dataset.idx);
+                    if (isAdminLoggedIn && isEditMode) {
+                        // 编辑模式：打开编辑弹窗
+                        openEditLink(idx);
+                    } else {
+                        // 只读模式：跳转
+                        const url = this.dataset.url;
+                        if (url && url !== '#') {
+                            window.open(url, '_blank');
+                        } else {
+                            showToast('该链接未设置有效URL', 'error');
+                        }
+                    }
+                });
+            });
+
+            // 删除事件
+            container.querySelectorAll('.link-item .delete-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const idx = parseInt(this.dataset.idx);
+                    if (confirm('确定要删除这条推文链接吗？')) {
+                        DATA.links.splice(idx, 1);
+                        saveToSupabase().then(() => {
+                            renderLinks();
+                            showToast('✅ 已删除', 'success');
+                        });
+                    }
+                });
+            });
+        }
+
+        // 编辑链接
+        function openEditLink(idx) {
+            const item = DATA.links[idx];
+            if (!item) return;
+            showEditModal(
+                '编辑推文链接',
+                `
+                    <div class="field"><label>标题</label><input type="text" id="edit_link_title" value="${escapeHtml(item.title)}" /></div>
+                    <div class="field"><label>URL</label><input type="url" id="edit_link_url" value="${escapeHtml(item.url)}" placeholder="https://..." /></div>
+                `,
+                async () => {
+                    try {
+                        const title = document.getElementById('edit_link_title').value.trim() || '未命名链接';
+                        const url = document.getElementById('edit_link_url').value.trim() || '#';
+                        DATA.links[idx] = { title, url };
+                        await saveToSupabase();
+                        renderLinks();
+                        closeModal();
+                        showToast('✅ 链接已更新', 'success');
+                    } catch (e) {
+                        console.error(e);
+                        showToast('❌ 保存失败：' + e.message, 'error');
+                    }
+                }
+            );
+        }
+
+        // ========== 其他渲染函数（同前） ==========
+        function renderAchievements() {
+            const items = DATA.achievements || [];
+            const container = document.getElementById('achievementList');
+            if (items.length === 0) {
+                container.innerHTML =
+                    `<div class="empty-state"><div class="icon">🖼️</div><p>暂无成果，请登录后添加</p></div>`;
+                return;
+            }
+            container.innerHTML = items.map((item, idx) => `
+                    <div class="achieve-card" data-idx="${idx}">
+                        <img src="${item.img || ''}" alt="${escapeHtml(item.title)}" 
+                             onerror="this.src='';this.style.background='#eef1f5';" />
+                        <div class="info">
+                            <h4>${escapeHtml(item.title || '未命名')}</h4>
+                            <p>${escapeHtml(item.desc || '')}</p>
+                        </div>
+                        ${isAdminLoggedIn && isEditMode ? `<button class="delete-btn" data-idx="${idx}" data-type="achievement">✕</button>` : ''}
+                    </div>
+                `).join('');
+            container.querySelectorAll('.achieve-card').forEach(el => {
+                el.addEventListener('click', function(e) {
+                    if (e.target.closest('.delete-btn')) return;
+                    const idx = parseInt(this.dataset.idx);
+                    showAchievementDetail(idx);
+                });
+            });
+            container.querySelectorAll('.achieve-card .delete-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const idx = parseInt(this.dataset.idx);
+                    if (confirm('确定要删除这个成果吗？')) {
+                        DATA.achievements.splice(idx, 1);
+                        saveToSupabase().then(() => {
+                            renderAchievements();
+                            showToast('✅ 已删除', 'success');
+                        });
+                    }
+                });
+            });
+        }
+
+        function showAchievementDetail(idx) {
+            const item = DATA.achievements[idx];
+            if (!item) return;
+            const modal = document.getElementById('modalContent');
+            modal.innerHTML = `
+                    <img src="${item.img || ''}" alt="${escapeHtml(item.title)}" 
+                         onerror="this.src='';this.style.background='#eef1f5';" />
+                    <h2>${escapeHtml(item.title || '未命名成果')}</h2>
+                    <div class="detail-text">${escapeHtml(item.desc || '暂无详细说明')}</div>
+                    ${isAdminLoggedIn && isEditMode ? `<div class="flex" style="gap:8px;margin-top:12px;">
+                        <button class="btn btn-outline btn-sm edit-achieve" data-idx="${idx}">✏️ 编辑</button>
+                        <button class="btn btn-danger btn-sm delete-achieve" data-idx="${idx}">🗑️ 删除</button>
+                    </div>` : ''}
+                `;
+            if (isAdminLoggedIn && isEditMode) {
+                modal.querySelector('.edit-achieve')?.addEventListener('click', () => {
+                    openEditAchievement(idx);
+                });
+                modal.querySelector('.delete-achieve')?.addEventListener('click', () => {
+                    if (confirm('确定要删除这个成果吗？')) {
+                        DATA.achievements.splice(idx, 1);
+                        saveToSupabase().then(() => {
+                            renderAchievements();
+                            closeModal();
+                            showToast('✅ 已删除', 'success');
+                        });
+                    }
+                });
+            }
+            openModal();
+        }
+
+        function renderAgriculture() {
+            const items = DATA.agriculture || [];
+            const container = document.getElementById('agricultureList');
+            if (items.length === 0) {
+                container.innerHTML =
+                    `<div class="empty-state"><div class="icon">🌾</div><p>暂无农产品，请登录后添加</p></div>`;
+                return;
+            }
+            container.innerHTML = items.map((item, idx) => `
+                    <div class="product-row" data-idx="${idx}" data-type="agriculture">
+                        <img class="logo" src="${item.logo || ''}" alt="${escapeHtml(item.name)}" 
+                             onerror="this.src='';this.style.background='#eef1f5';" />
+                        <span class="pname">${escapeHtml(item.name || '未命名')}</span>
+                        <span class="pdesc">${escapeHtml(item.desc || '')}</span>
+                        ${isAdminLoggedIn && isEditMode ? `<button class="delete-btn" data-idx="${idx}" data-type="agriculture">✕</button>` : ''}
+                    </div>
+                `).join('');
+            container.querySelectorAll('.product-row').forEach(el => {
+                el.addEventListener('click', function(e) {
+                    if (e.target.closest('.delete-btn')) return;
+                    const idx = parseInt(this.dataset.idx);
+                    showProductDetail('agriculture', idx);
+                });
+            });
+            container.querySelectorAll('.product-row .delete-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const idx = parseInt(this.dataset.idx);
+                    if (confirm('确定要删除这个农产品吗？')) {
+                        DATA.agriculture.splice(idx, 1);
+                        saveToSupabase().then(() => {
+                            renderAgriculture();
+                            showToast('✅ 已删除', 'success');
+                        });
+                    }
+                });
+            });
+        }
+
+        function renderFishery() {
+            const items = DATA.fishery || [];
+            const container = document.getElementById('fisheryList');
+            if (items.length === 0) {
+                container.innerHTML =
+                    `<div class="empty-state"><div class="icon">🐟</div><p>暂无水产品，请登录后添加</p></div>`;
+                return;
+            }
+            container.innerHTML = items.map((item, idx) => `
+                    <div class="product-row" data-idx="${idx}" data-type="fishery">
+                        <img class="logo" src="${item.logo || ''}" alt="${escapeHtml(item.name)}" 
+                             onerror="this.src='';this.style.background='#eef1f5';" />
+                        <span class="pname">${escapeHtml(item.name || '未命名')}</span>
+                        <span class="pdesc">${escapeHtml(item.desc || '')}</span>
+                        ${isAdminLoggedIn && isEditMode ? `<button class="delete-btn" data-idx="${idx}" data-type="fishery">✕</button>` : ''}
+                    </div>
+                `).join('');
+            container.querySelectorAll('.product-row').forEach(el => {
+                el.addEventListener('click', function(e) {
+                    if (e.target.closest('.delete-btn')) return;
+                    const idx = parseInt(this.dataset.idx);
+                    showProductDetail('fishery', idx);
+                });
+            });
+            container.querySelectorAll('.product-row .delete-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const idx = parseInt(this.dataset.idx);
+                    if (confirm('确定要删除这个水产品吗？')) {
+                        DATA.fishery.splice(idx, 1);
+                        saveToSupabase().then(() => {
+                            renderFishery();
+                            showToast('✅ 已删除', 'success');
+                        });
+                    }
+                });
+            });
+        }
+
+        function showProductDetail(type, idx) {
+            const list = type === 'agriculture' ? DATA.agriculture : DATA.fishery;
+            const item = list[idx];
+            if (!item) return;
+            const modal = document.getElementById('modalContent');
+            modal.innerHTML = `
+                    <img src="${item.logo || ''}" alt="${escapeHtml(item.name)}" 
+                         onerror="this.src='';this.style.background='#eef1f5';" />
+                    <h2 style="text-align:center;">${escapeHtml(item.name || '未命名')}</h2>
+                    <div class="detail-text" style="text-align:center;font-weight:600;font-size:16px;color:#1a4d8f;">${escapeHtml(item.desc || '')}</div>
+                    <div class="detail-text" style="margin-top:12px;">${escapeHtml(item.detail || '暂无详细介绍')}</div>
+                    ${isAdminLoggedIn && isEditMode ? `<div class="flex" style="gap:8px;margin-top:12px;">
+                        <button class="btn btn-outline btn-sm edit-product" data-type="${type}" data-idx="${idx}">✏️ 编辑</button>
+                        <button class="btn btn-danger btn-sm delete-product" data-type="${type}" data-idx="${idx}">🗑️ 删除</button>
+                    </div>` : ''}
+                `;
+            if (isAdminLoggedIn && isEditMode) {
+                modal.querySelector('.edit-product')?.addEventListener('click', () => {
+                    openEditProduct(type, idx);
+                });
+                modal.querySelector('.delete-product')?.addEventListener('click', () => {
+                    if (confirm(`确定要删除这个${type === 'agriculture' ? '农产品' : '水产品'}吗？`)) {
+                        list.splice(idx, 1);
+                        saveToSupabase().then(() => {
+                            if (type === 'agriculture') renderAgriculture();
+                            else renderFishery();
+                            closeModal();
+                            showToast('✅ 已删除', 'success');
+                        });
+                    }
+                });
+            }
+            openModal();
+        }
+
+        function renderEnterprises() {
+            const items = DATA.enterprises || [];
+            const container = document.getElementById('enterpriseList');
+            if (items.length === 0) {
+                container.innerHTML =
+                    `<div class="empty-state"><div class="icon">🏢</div><p>暂无企业信息，请登录后添加</p></div>`;
+                return;
+            }
+            container.innerHTML = items.map((item, idx) => `
+                    <div class="ent-card" data-idx="${idx}">
+                        <img src="${item.img || ''}" alt="${escapeHtml(item.name)}" 
+                             onerror="this.src='';this.style.background='#eef1f5';" />
+                        <div class="info">
+                            <h4>${escapeHtml(item.name || '未命名企业')}</h4>
+                            <p>${escapeHtml(item.intro || '')}</p>
+                        </div>
+                        ${isAdminLoggedIn && isEditMode ? `<button class="delete-btn" data-idx="${idx}" data-type="enterprise">✕</button>` : ''}
+                    </div>
+                `).join('');
+            container.querySelectorAll('.ent-card').forEach(el => {
+                el.addEventListener('click', function(e) {
+                    if (e.target.closest('.delete-btn')) return;
+                    const idx = parseInt(this.dataset.idx);
+                    showEnterpriseDetail(idx);
+                });
+            });
+            container.querySelectorAll('.ent-card .delete-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const idx = parseInt(this.dataset.idx);
+                    if (confirm('确定要删除这个企业吗？')) {
+                        DATA.enterprises.splice(idx, 1);
+                        saveToSupabase().then(() => {
+                            renderEnterprises();
+                            showToast('✅ 已删除', 'success');
+                        });
+                    }
+                });
+            });
+        }
+
+        function showEnterpriseDetail(idx) {
+            const item = DATA.enterprises[idx];
+            if (!item) return;
+            const modal = document.getElementById('modalContent');
+            modal.innerHTML = `
+                    <img src="${item.img || ''}" alt="${escapeHtml(item.name)}" 
+                         onerror="this.src='';this.style.background='#eef1f5';" />
+                    <h2>${escapeHtml(item.name || '未命名企业')}</h2>
+                    <div class="detail-text"><strong>简介：</strong>${escapeHtml(item.intro || '')}</div>
+                    <div class="detail-text"><strong>电话：</strong>${escapeHtml(item.phone || '')}</div>
+                    <div class="detail-text"><strong>地址：</strong>${escapeHtml(item.address || '')}</div>
+                    ${isAdminLoggedIn && isEditMode ? `<div class="flex" style="gap:8px;margin-top:12px;">
+                        <button class="btn btn-outline btn-sm edit-enterprise" data-idx="${idx}">✏️ 编辑</button>
+                        <button class="btn btn-danger btn-sm delete-enterprise" data-idx="${idx}">🗑️ 删除</button>
+                    </div>` : ''}
+                `;
+            if (isAdminLoggedIn && isEditMode) {
+                modal.querySelector('.edit-enterprise')?.addEventListener('click', () => {
+                    openEditEnterprise(idx);
+                });
+                modal.querySelector('.delete-enterprise')?.addEventListener('click', () => {
+                    if (confirm('确定要删除这个企业吗？')) {
+                        DATA.enterprises.splice(idx, 1);
+                        saveToSupabase().then(() => {
+                            renderEnterprises();
+                            closeModal();
+                            showToast('✅ 已删除', 'success');
+                        });
+                    }
+                });
+            }
+            openModal();
+        }
+
+        function renderFactories() {
+            const items = DATA.factories || [];
+            const container = document.getElementById('factoryList');
+            if (items.length === 0) {
+                container.innerHTML =
+                    `<div class="empty-state"><div class="icon">🏭</div><p>暂无厂房信息，请登录后添加</p></div>`;
+                return;
+            }
+            container.innerHTML = items.map((item, idx) => `
+                    <div class="factory-row" data-idx="${idx}">
+                        <img src="${item.img || ''}" alt="厂房图片" 
+                             onerror="this.src='';this.style.background='#eef1f5';" />
+                        <div class="info">
+                            <p><strong>地点：</strong>${escapeHtml(item.location || '')}</p>
+                            <p><strong>电话：</strong>${escapeHtml(item.phone || '')}</p>
+                            <p><strong>面积：</strong>${escapeHtml(item.area || '')}</p>
+                            <p style="margin-top:4px;color:#5a6a7e;">${escapeHtml(item.desc || '')}</p>
+                        </div>
+                        ${isAdminLoggedIn && isEditMode ? `<button class="delete-btn" data-idx="${idx}" data-type="factory">✕</button>` : ''}
+                    </div>
+                `).join('');
+            container.querySelectorAll('.factory-row').forEach(el => {
+                el.addEventListener('click', function(e) {
+                    if (e.target.closest('.delete-btn')) return;
+                    const idx = parseInt(this.dataset.idx);
+                    showFactoryDetail(idx);
+                });
+            });
+            container.querySelectorAll('.factory-row .delete-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const idx = parseInt(this.dataset.idx);
+                    if (confirm('确定要删除这个厂房吗？')) {
+                        DATA.factories.splice(idx, 1);
+                        saveToSupabase().then(() => {
+                            renderFactories();
+                            showToast('✅ 已删除', 'success');
+                        });
+                    }
+                });
+            });
+        }
+
+        function showFactoryDetail(idx) {
+            const item = DATA.factories[idx];
+            if (!item) return;
+            const modal = document.getElementById('modalContent');
+            modal.innerHTML = `
+                    <img src="${item.img || ''}" alt="厂房图片" 
+                         onerror="this.src='';this.style.background='#eef1f5';" />
+                    <h2>🏭 厂房信息</h2>
+                    <div class="detail-text"><strong>地点：</strong>${escapeHtml(item.location || '')}</div>
+                    <div class="detail-text"><strong>电话：</strong>${escapeHtml(item.phone || '')}</div>
+                    <div class="detail-text"><strong>面积：</strong>${escapeHtml(item.area || '')}</div>
+                    <div class="detail-text" style="margin-top:8px;">${escapeHtml(item.desc || '')}</div>
+                    ${isAdminLoggedIn && isEditMode ? `<div class="flex" style="gap:8px;margin-top:12px;">
+                        <button class="btn btn-outline btn-sm edit-factory" data-idx="${idx}">✏️ 编辑</button>
+                        <button class="btn btn-danger btn-sm delete-factory" data-idx="${idx}">🗑️ 删除</button>
+                    </div>` : ''}
+                `;
+            if (isAdminLoggedIn && isEditMode) {
+                modal.querySelector('.edit-factory')?.addEventListener('click', () => {
+                    openEditFactory(idx);
+                });
+                modal.querySelector('.delete-factory')?.addEventListener('click', () => {
+                    if (confirm('确定要删除这个厂房吗？')) {
+                        DATA.factories.splice(idx, 1);
+                        saveToSupabase().then(() => {
+                            renderFactories();
+                            closeModal();
+                            showToast('✅ 已删除', 'success');
+                        });
+                    }
+                });
+            }
+            openModal();
+        }
+
+        function renderMap() {
+            const img = document.getElementById('factoryMapImg');
+            const placeholder = document.getElementById('mapPlaceholder');
+            const mapData = DATA.factoryMap || '';
+            if (mapData) {
+                img.src = mapData;
+                img.style.display = 'block';
+                placeholder.style.display = 'none';
+            } else {
+                img.style.display = 'none';
+                placeholder.style.display = 'flex';
+            }
+        }
+
+        function openModal() {
+            document.getElementById('modalOverlay').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        document.getElementById('modalClose').addEventListener('click', closeModal);
+        document.getElementById('modalOverlay').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeModal();
+        });
+
+        function showEditModal(title, fieldsHtml, onSave) {
+            const modal = document.getElementById('modalContent');
+            modal.innerHTML = `
+                    <h2>✏️ ${title}</h2>
+                    ${fieldsHtml}
+                    <div class="flex" style="margin-top:20px;gap:12px;">
+                        <button class="btn btn-primary" id="editSaveBtn">保存</button>
+                        <button class="btn btn-outline" id="editCancelBtn">取消</button>
+                    </div>
+                `;
+            openModal();
+            document.getElementById('editSaveBtn').addEventListener('click', onSave);
+            document.getElementById('editCancelBtn').addEventListener('click', closeModal);
+        }
+
+        function checkEditPermission() {
+            if (!isAdminLoggedIn) {
+                showToast('⚠️ 请先登录设置以编辑内容', 'error');
+                return false;
+            }
+            if (!isEditMode) {
+                showToast('⚠️ 编辑模式未开启，请在设置中开启', 'error');
+                return false;
+            }
+            return true;
+        }
+
+        async function openEditAchievement(idx) {
+            if (!checkEditPermission()) return;
+            const item = DATA.achievements[idx];
+            if (!item) return;
+            showEditModal(
+                '编辑成果',
+                `
+                    <div class="field"><label>标题</label><input type="text" id="edit_ach_title" value="${escapeHtml(item.title)}" /></div>
+                    <div class="field"><label>简介</label><input type="text" id="edit_ach_desc" value="${escapeHtml(item.desc)}" /></div>
+                    <div class="field"><label>图片</label>
+                        <div class="flex">
+                            <button class="btn btn-outline btn-sm" id="edit_ach_img_btn">更换图片</button>
+                            <span class="text-muted" id="edit_ach_img_name">${item.img ? '已上传' : '未上传'}</span>
+                        </div>
+                        <input type="file" id="edit_ach_img_input" accept="image/*" style="display:none;" />
+                    </div>
+                `,
+                async () => {
+                    try {
+                        const title = document.getElementById('edit_ach_title').value.trim() || '未命名';
+                        const desc = document.getElementById('edit_ach_desc').value.trim();
+                        const fileInput = document.getElementById('edit_ach_img_input');
+                        let img = item.img;
+                        if (fileInput.files && fileInput.files[0]) {
+                            img = await compressImage(fileInput.files[0], 800, 0.7);
+                        }
+                        DATA.achievements[idx] = { ...item, title, desc, img };
+                        await saveToSupabase();
+                        renderAchievements();
+                        closeModal();
+                        showToast('✅ 成果已更新', 'success');
+                    } catch (e) {
+                        console.error(e);
+                        showToast('❌ 保存失败：' + e.message, 'error');
+                    }
+                }
+            );
+            document.getElementById('edit_ach_img_btn')?.addEventListener('click', () => {
+                document.getElementById('edit_ach_img_input')?.click();
+            });
+            document.getElementById('edit_ach_img_input')?.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    document.getElementById('edit_ach_img_name').textContent = e.target.files[0].name;
+                }
+            });
+        }
+
+        async function openEditProduct(type, idx) {
+            if (!checkEditPermission()) return;
+            const list = type === 'agriculture' ? DATA.agriculture : DATA.fishery;
+            const item = list[idx];
+            if (!item) return;
+            const label = type === 'agriculture' ? '农产品' : '水产品';
+            showEditModal(
+                `编辑${label}`,
+                `
+                    <div class="field"><label>名称</label><input type="text" id="edit_prod_name" value="${escapeHtml(item.name)}" /></div>
+                    <div class="field"><label>简介 (7-8字)</label><input type="text" id="edit_prod_desc" value="${escapeHtml(item.desc)}" maxlength="20" /></div>
+                    <div class="field"><label>详细介绍</label><textarea id="edit_prod_detail" rows="3">${escapeHtml(item.detail || '')}</textarea></div>
+                    <div class="field"><label>Logo</label>
+                        <div class="flex">
+                            <button class="btn btn-outline btn-sm" id="edit_prod_logo_btn">更换Logo</button>
+                            <span class="text-muted" id="edit_prod_logo_name">${item.logo ? '已上传' : '未上传'}</span>
+                        </div>
+                        <input type="file" id="edit_prod_logo_input" accept="image/*" style="display:none;" />
+                    </div>
+                `,
+                async () => {
+                    try {
+                        const name = document.getElementById('edit_prod_name').value.trim() || '未命名';
+                        const desc = document.getElementById('edit_prod_desc').value.trim();
+                        const detail = document.getElementById('edit_prod_detail').value.trim();
+                        const fileInput = document.getElementById('edit_prod_logo_input');
+                        let logo = item.logo;
+                        if (fileInput.files && fileInput.files[0]) {
+                            logo = await compressImage(fileInput.files[0], 600, 0.7);
+                        }
+                        list[idx] = { ...item, name, desc, detail, logo };
+                        await saveToSupabase();
+                        if (type === 'agriculture') renderAgriculture();
+                        else renderFishery();
+                        closeModal();
+                        showToast(`✅ ${label}已更新`, 'success');
+                    } catch (e) {
+                        console.error(e);
+                        showToast('❌ 保存失败：' + e.message, 'error');
+                    }
+                }
+            );
+            document.getElementById('edit_prod_logo_btn')?.addEventListener('click', () => {
+                document.getElementById('edit_prod_logo_input')?.click();
+            });
+            document.getElementById('edit_prod_logo_input')?.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    document.getElementById('edit_prod_logo_name').textContent = e.target.files[0].name;
+                }
+            });
+        }
+
+        async function openEditEnterprise(idx) {
+            if (!checkEditPermission()) return;
+            const item = DATA.enterprises[idx];
+            if (!item) return;
+            showEditModal(
+                '编辑企业',
+                `
+                    <div class="field"><label>企业名称</label><input type="text" id="edit_ent_name" value="${escapeHtml(item.name)}" /></div>
+                    <div class="field"><label>简介</label><input type="text" id="edit_ent_intro" value="${escapeHtml(item.intro)}" /></div>
+                    <div class="field"><label>电话</label><input type="text" id="edit_ent_phone" value="${escapeHtml(item.phone)}" /></div>
+                    <div class="field"><label>地址</label><input type="text" id="edit_ent_address" value="${escapeHtml(item.address)}" /></div>
+                    <div class="field"><label>图片</label>
+                        <div class="flex">
+                            <button class="btn btn-outline btn-sm" id="edit_ent_img_btn">更换图片</button>
+                            <span class="text-muted" id="edit_ent_img_name">${item.img ? '已上传' : '未上传'}</span>
+                        </div>
+                        <input type="file" id="edit_ent_img_input" accept="image/*" style="display:none;" />
+                    </div>
+                `,
+                async () => {
+                    try {
+                        const name = document.getElementById('edit_ent_name').value.trim() || '未命名企业';
+                        const intro = document.getElementById('edit_ent_intro').value.trim();
+                        const phone = document.getElementById('edit_ent_phone').value.trim();
+                        const address = document.getElementById('edit_ent_address').value.trim();
+                        const fileInput = document.getElementById('edit_ent_img_input');
+                        let img = item.img;
+                        if (fileInput.files && fileInput.files[0]) {
+                            img = await compressImage(fileInput.files[0], 800, 0.7);
+                        }
+                        DATA.enterprises[idx] = { ...item, name, intro, phone, address, img };
+                        await saveToSupabase();
+                        renderEnterprises();
+                        closeModal();
+                        showToast('✅ 企业信息已更新', 'success');
+                    } catch (e) {
+                        console.error(e);
+                        showToast('❌ 保存失败：' + e.message, 'error');
+                    }
+                }
+            );
+            document.getElementById('edit_ent_img_btn')?.addEventListener('click', () => {
+                document.getElementById('edit_ent_img_input')?.click();
+            });
+            document.getElementById('edit_ent_img_input')?.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    document.getElementById('edit_ent_img_name').textContent = e.target.files[0].name;
+                }
+            });
+        }
+
+        async function openEditFactory(idx) {
+            if (!checkEditPermission()) return;
+            const item = DATA.factories[idx];
+            if (!item) return;
+            showEditModal(
+                '编辑厂房',
+                `
+                    <div class="field"><label>地点</label><input type="text" id="edit_fac_location" value="${escapeHtml(item.location)}" /></div>
+                    <div class="field"><label>电话</label><input type="text" id="edit_fac_phone" value="${escapeHtml(item.phone)}" /></div>
+                    <div class="field"><label>面积</label><input type="text" id="edit_fac_area" value="${escapeHtml(item.area)}" /></div>
+                    <div class="field"><label>描述</label><input type="text" id="edit_fac_desc" value="${escapeHtml(item.desc)}" /></div>
+                    <div class="field"><label>图片</label>
+                        <div class="flex">
+                            <button class="btn btn-outline btn-sm" id="edit_fac_img_btn">更换图片</button>
+                            <span class="text-muted" id="edit_fac_img_name">${item.img ? '已上传' : '未上传'}</span>
+                        </div>
+                        <input type="file" id="edit_fac_img_input" accept="image/*" style="display:none;" />
+                    </div>
+                `,
+                async () => {
+                    try {
+                        const location = document.getElementById('edit_fac_location').value.trim() || '未填写';
+                        const phone = document.getElementById('edit_fac_phone').value.trim();
+                        const area = document.getElementById('edit_fac_area').value.trim();
+                        const desc = document.getElementById('edit_fac_desc').value.trim();
+                        const fileInput = document.getElementById('edit_fac_img_input');
+                        let img = item.img;
+                        if (fileInput.files && fileInput.files[0]) {
+                            img = await compressImage(fileInput.files[0], 800, 0.7);
+                        }
+                        DATA.factories[idx] = { ...item, location, phone, area, desc, img };
+                        await saveToSupabase();
+                        renderFactories();
+                        closeModal();
+                        showToast('✅ 厂房信息已更新', 'success');
+                    } catch (e) {
+                        console.error(e);
+                        showToast('❌ 保存失败：' + e.message, 'error');
+                    }
+                }
+            );
+            document.getElementById('edit_fac_img_btn')?.addEventListener('click', () => {
+                document.getElementById('edit_fac_img_input')?.click();
+            });
+            document.getElementById('edit_fac_img_input')?.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    document.getElementById('edit_fac_img_name').textContent = e.target.files[0].name;
+                }
+            });
+        }
+
+        function switchPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelector(`.nav-item[data-page="${pageId}"]`).classList.add('active');
+            if (pageId === 'home') { renderCarousel();
+                renderLinks();
+                renderAchievements(); }
+            if (pageId === 'agriculture') { renderAgriculture();
+                renderFishery(); }
+            if (pageId === 'industry') { renderEnterprises();
+                renderFactories();
+                renderMap(); }
+        }
+
+        document.querySelectorAll('.nav-item').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const page = this.dataset.page;
+                if (page === 'settings') {
+                    if (isAdminLoggedIn) {
+                        document.getElementById('settingsLogin').style.display = 'none';
+                        document.getElementById('settingsPanel').style.display = 'block';
+                    } else {
+                        document.getElementById('settingsLogin').style.display = 'block';
+                        document.getElementById('settingsPanel').style.display = 'none';
+                    }
+                }
+                switchPage(page);
+                if (carouselTimer) clearInterval(carouselTimer);
+                if (page === 'home') startCarousel();
+            });
+        });
+
+        function checkSettingsAuth() {
+            const saved = localStorage.getItem('zhumeng_settings_auth');
+            if (saved === 'true') {
+                isAdminLoggedIn = true;
+                document.getElementById('settingsLogin').style.display = 'none';
+                document.getElementById('settingsPanel').style.display = 'block';
+                updateAuthUI();
+                return true;
+            }
+            return false;
+        }
+
+        function updateAuthUI() {
+            const dot = document.getElementById('loginDot');
+            if (isAdminLoggedIn) {
+                dot.className = 'login-dot';
+                isEditMode = true;
+                document.getElementById('toggleEditModeBtn').textContent = '关闭编辑';
+                document.getElementById('editModeStatus').textContent = '🔓 当前：编辑模式 (可点击修改，显示删除按钮)';
+                document.getElementById('editModeStatus').style.background = '#e6f7e6';
+            } else {
+                dot.className = 'login-dot off';
+                isEditMode = false;
+                document.getElementById('toggleEditModeBtn').textContent = '开启编辑';
+                document.getElementById('editModeStatus').textContent = '🔒 当前：只读模式 (请登录)';
+                document.getElementById('editModeStatus').style.background = '#f0f7ff';
+            }
+            const activePage = document.querySelector('.page.active');
+            if (activePage) {
+                const id = activePage.id.replace('page-', '');
+                switchPage(id);
+            }
+        }
+
+        document.getElementById('settingsLoginBtn').addEventListener('click', function() {
+            const input = document.getElementById('settingsPasswordInput').value;
+            if (input === DATA.settings.password) {
+                isAdminLoggedIn = true;
+                localStorage.setItem('zhumeng_settings_auth', 'true');
+                document.getElementById('settingsLogin').style.display = 'none';
+                document.getElementById('settingsPanel').style.display = 'block';
+                document.getElementById('settingsLoginError').style.display = 'none';
+                updateAuthUI();
+                showToast('✅ 登录成功，已开启编辑模式', 'success');
+                const activePage = document.querySelector('.page.active');
+                if (activePage) {
+                    const id = activePage.id.replace('page-', '');
+                    switchPage(id);
+                }
+            } else {
+                document.getElementById('settingsLoginError').style.display = 'block';
+                showToast('❌ 密码错误', 'error');
+            }
+        });
+
+        document.getElementById('settingsPasswordInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') document.getElementById('settingsLoginBtn').click();
+        });
+
+        document.getElementById('settingsLogoutBtn').addEventListener('click', function() {
+            isAdminLoggedIn = false;
+            localStorage.removeItem('zhumeng_settings_auth');
+            document.getElementById('settingsLogin').style.display = 'block';
+            document.getElementById('settingsPanel').style.display = 'none';
+            document.getElementById('settingsPasswordInput').value = '';
+            document.getElementById('settingsLoginError').style.display = 'none';
+            updateAuthUI();
+            showToast('已退出登录', 'info');
+            const activePage = document.querySelector('.page.active');
+            if (activePage) {
+                const id = activePage.id.replace('page-', '');
+                switchPage(id);
+            }
+        });
+
+        document.getElementById('settingsChangePwdBtn').addEventListener('click', async function() {
+            if (!isAdminLoggedIn) {
+                showToast('请先登录', 'error');
+                return;
+            }
+            const newPwd = document.getElementById('settingsNewPassword').value.trim();
+            if (!newPwd || newPwd.length < 4) {
+                document.getElementById('pwdChangeMsg').textContent = '⚠️ 密码至少4位';
+                return;
+            }
+            DATA.settings.password = newPwd;
+            await saveToSupabase();
+            document.getElementById('pwdChangeMsg').textContent = '✅ 密码已更新';
+            document.getElementById('settingsNewPassword').value = '';
+            showToast('✅ 密码已更新', 'success');
+        });
+
+        document.getElementById('toggleEditModeBtn').addEventListener('click', function() {
+            if (!isAdminLoggedIn) {
+                showToast('请先登录设置', 'error');
+                return;
+            }
+            isEditMode = !isEditMode;
+            this.textContent = isEditMode ? '关闭编辑' : '开启编辑';
+            document.getElementById('editModeStatus').textContent = isEditMode ? '🔓 当前：编辑模式 (可点击修改，显示删除按钮)' :
+                '🔒 当前：只读模式';
+            document.getElementById('editModeStatus').style.background = isEditMode ? '#e6f7e6' : '#f0f7ff';
+            showToast(isEditMode ? '✅ 已开启编辑模式' : '已关闭编辑模式', 'info');
+            const activePage = document.querySelector('.page.active');
+            if (activePage) {
+                const id = activePage.id.replace('page-', '');
+                switchPage(id);
+            }
+        });
+
+        document.getElementById('saveDataBtn').addEventListener('click', async function() {
+            if (!isAdminLoggedIn) {
+                showToast('请先登录', 'error');
+                return;
+            }
+            await saveToSupabase();
+        });
+
+        // 地图上传
+        document.getElementById('factoryMap').addEventListener('click', function() {
+            if (!isAdminLoggedIn || !isEditMode) {
+                const mapData = DATA.factoryMap || '';
+                if (mapData) {
+                    const modal = document.getElementById('modalContent');
+                    modal.innerHTML = `
+                            <img src="${mapData}" alt="厂房地图" style="max-height:70vh;" />
+                            <p class="text-muted text-center" style="margin-top:8px;">🗺️ 厂房地图</p>
+                            ${isAdminLoggedIn && isEditMode ? `<div class="border-top mt-12"><button class="btn btn-outline btn-sm" id="editMapBtn">更换地图</button></div>` : ''}
+                        `;
+                    openModal();
+                    if (isAdminLoggedIn && isEditMode) {
+                        document.getElementById('editMapBtn')?.addEventListener('click', () => {
+                            closeModal();
+                            uploadMapImage();
+                        });
+                    }
+                } else {
+                    if (isAdminLoggedIn && isEditMode) uploadMapImage();
+                    else showToast('请登录并开启编辑模式以添加地图', 'error');
+                }
+                return;
+            }
+            uploadMapImage();
+        });
+
+        async function uploadMapImage() {
+            if (!checkEditPermission()) return;
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = async (e) => {
+                try {
+                    if (e.target.files && e.target.files[0]) {
+                        const data = await compressImage(e.target.files[0], 1200, 0.7);
+                        DATA.factoryMap = data;
+                        await saveToSupabase();
+                        renderMap();
+                        showToast('✅ 地图已更新', 'success');
+                    }
+                } catch (err) {
+                    showToast('❌ 地图上传失败：' + err.message, 'error');
+                }
+            };
+            input.click();
+        }
+
+        // 轮播管理
+        document.getElementById('carouselWrapper').addEventListener('click', function(e) {
+            if (e.target.closest('.carousel-controls')) return;
+            const imgs = DATA.carousel || [];
+            if (imgs.length === 0) {
+                if (isAdminLoggedIn && isEditMode) {
+                    manageCarousel();
+                } else {
+                    showToast('暂无轮播图片，请登录后添加', 'error');
+                }
+                return;
+            }
+            const modal = document.getElementById('modalContent');
+            modal.innerHTML = `
+                    <img src="${imgs[carouselIdx] || ''}" alt="轮播图" style="max-height:70vh;" />
+                    <p class="text-muted text-center" style="margin-top:8px;">📷 轮播图 ${carouselIdx+1}/${imgs.length}</p>
+                    ${isAdminLoggedIn && isEditMode ? `<div class="border-top mt-12 flex" style="gap:8px;justify-content:center;">
+                        <button class="btn btn-outline btn-sm" id="editCarouselBtn">管理轮播图</button>
+                    </div>` : ''}
+                `;
+            openModal();
+            if (isAdminLoggedIn && isEditMode) {
+                document.getElementById('editCarouselBtn')?.addEventListener('click', () => {
+                    closeModal();
+                    manageCarousel();
+                });
+            }
+        });
+
+        document.getElementById('carouselPrev').addEventListener('click', function(e) {
+            e.stopPropagation();
+            const imgs = DATA.carousel || [];
+            if (imgs.length === 0) return;
+            carouselIdx = (carouselIdx - 1 + imgs.length) % imgs.length;
+            renderCarousel();
+            resetCarouselTimer();
+        });
+
+        document.getElementById('carouselNext').addEventListener('click', function(e) {
+            e.stopPropagation();
+            const imgs = DATA.carousel || [];
+            if (imgs.length === 0) return;
+            carouselIdx = (carouselIdx + 1) % imgs.length;
+            renderCarousel();
+            resetCarouselTimer();
+        });
+
+        function resetCarouselTimer() {
+            if (carouselTimer) { clearInterval(carouselTimer);
+                carouselTimer = null; }
+            startCarousel();
+        }
+
+        async function manageCarousel() {
+            if (!checkEditPermission()) return;
+            const imgs = DATA.carousel || [];
+            showEditModal(
+                '管理轮播图',
+                `
+                    <div class="field">
+                        <label>当前图片 (${imgs.length} 张)</label>
+                        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;" id="carouselPreview">
+                            ${imgs.map((src, i) => `
+                                <div style="position:relative;width:80px;height:80px;border-radius:12px;overflow:hidden;border:1px solid #e0e6ef;">
+                                    <img src="${src}" style="width:100%;height:100%;object-fit:cover;" />
+                                    <button class="carousel-del" data-idx="${i}" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:14px;cursor:pointer;">×</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label>添加图片</label>
+                        <input type="file" id="carouselAddInput" accept="image/*" multiple />
+                    </div>
+                `,
+                async () => {
+                    try {
+                        const delBtns = document.querySelectorAll('.carousel-del');
+                        const toRemove = [];
+                        delBtns.forEach(btn => {
+                            btn.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                const idx = parseInt(btn.dataset.idx);
+                                toRemove.push(idx);
+                                btn.closest('div').remove();
+                            });
+                        });
+                        const input = document.getElementById('carouselAddInput');
+                        if (input.files && input.files.length > 0) {
+                            for (const file of input.files) {
+                                const data = await compressImage(file, 800, 0.7);
+                                DATA.carousel.push(data);
+                            }
+                        }
+                        const sorted = toRemove.sort((a, b) => b - a);
+                        for (const idx of sorted) {
+                            DATA.carousel.splice(idx, 1);
+                        }
+                        await saveToSupabase();
+                        if (carouselIdx >= DATA.carousel.length) carouselIdx = 0;
+                        renderCarousel();
+                        closeModal();
+                        showToast('✅ 轮播图已更新', 'success');
+                    } catch (e) {
+                        console.error(e);
+                        showToast('❌ 保存失败：' + e.message, 'error');
+                    }
+                }
+            );
+            setTimeout(() => {
+                document.querySelectorAll('.carousel-del').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const idx = parseInt(btn.dataset.idx);
+                        DATA.carousel.splice(idx, 1);
+                        saveToSupabase().then(() => {
+                            if (carouselIdx >= DATA.carousel.length) carouselIdx = 0;
+                            renderCarousel();
+                            manageCarousel();
+                            showToast('✅ 已删除', 'success');
+                        });
+                    });
+                });
+            }, 100);
+        }
+
+        // 快速添加
+        document.querySelectorAll('.add-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (!isAdminLoggedIn) {
+                    showToast('请先登录设置', 'error');
+                    return;
+                }
+                const type = this.dataset.add;
+                openAddModal(type);
+            });
+        });
+
+        function openAddModal(type) {
+            if (!checkEditPermission()) return;
+            const map = {
+                link: { label: '推文链接', fields: `
+                        <div class="field"><label>标题</label><input type="text" id="add_link_title" placeholder="推文标题" /></div>
+                        <div class="field"><label>URL</label><input type="url" id="add_link_url" placeholder="https://..." /></div>
+                    `, save: async () => {
+                        try {
+                            const title = document.getElementById('add_link_title').value.trim() || '未命名链接';
+                            const url = document.getElementById('add_link_url').value.trim() || '#';
+                            DATA.links.push({ title, url });
+                            await saveToSupabase();
+                            renderLinks();
+                            showToast('✅ 推文已添加', 'success');
+                            closeModal();
+                        } catch (e) {
+                            showToast('❌ 添加失败：' + e.message, 'error');
+                        }
+                    } },
+                achievement: { label: '成果', fields: `
+                        <div class="field"><label>标题</label><input type="text" id="add_ach_title" placeholder="成果标题" /></div>
+                        <div class="field"><label>简介</label><input type="text" id="add_ach_desc" placeholder="简短描述" /></div>
+                        <div class="field"><label>图片</label><input type="file" id="add_ach_img" accept="image/*" /></div>
+                    `, save: async () => {
+                        try {
+                            const title = document.getElementById('add_ach_title').value.trim() || '未命名';
+                            const desc = document.getElementById('add_ach_desc').value.trim();
+                            const fileInput = document.getElementById('add_ach_img');
+                            let img = '';
+                            if (fileInput.files && fileInput.files[0]) {
+                                img = await compressImage(fileInput.files[0], 800, 0.7);
+                            }
+                            DATA.achievements.push({ img, title, desc });
+                            await saveToSupabase();
+                            renderAchievements();
+                            showToast('✅ 成果已添加', 'success');
+                            closeModal();
+                        } catch (e) {
+                            showToast('❌ 添加失败：' + e.message, 'error');
+                        }
+                    } },
+                agriculture: { label: '农产品', fields: `
+                        <div class="field"><label>名称</label><input type="text" id="add_agri_name" placeholder="如：化橘红" /></div>
+                        <div class="field"><label>简介 (7-8字)</label><input type="text" id="add_agri_desc" placeholder="简短介绍" maxlength="20" /></div>
+                        <div class="field"><label>详细介绍</label><textarea id="add_agri_detail" rows="2" placeholder="详细描述..."></textarea></div>
+                        <div class="field"><label>Logo</label><input type="file" id="add_agri_logo" accept="image/*" /></div>
+                    `, save: async () => {
+                        try {
+                            const name = document.getElementById('add_agri_name').value.trim() || '未命名';
+                            const desc = document.getElementById('add_agri_desc').value.trim();
+                            const detail = document.getElementById('add_agri_detail').value.trim();
+                            const fileInput = document.getElementById('add_agri_logo');
+                            let logo = '';
+                            if (fileInput.files && fileInput.files[0]) {
+                                logo = await compressImage(fileInput.files[0], 600, 0.7);
+                            }
+                            DATA.agriculture.push({ logo, name, desc, detail });
+                            await saveToSupabase();
+                            renderAgriculture();
+                            showToast('✅ 农产品已添加', 'success');
+                            closeModal();
+                        } catch (e) {
+                            showToast('❌ 添加失败：' + e.message, 'error');
+                        }
+                    } },
+                fishery: { label: '水产品', fields: `
+                        <div class="field"><label>名称</label><input type="text" id="add_fish_name" placeholder="如：罗非鱼" /></div>
+                        <div class="field"><label>简介 (7-8字)</label><input type="text" id="add_fish_desc" placeholder="简短介绍" maxlength="20" /></div>
+                        <div class="field"><label>详细介绍</label><textarea id="add_fish_detail" rows="2" placeholder="详细描述..."></textarea></div>
+                        <div class="field"><label>Logo</label><input type="file" id="add_fish_logo" accept="image/*" /></div>
+                    `, save: async () => {
+                        try {
+                            const name = document.getElementById('add_fish_name').value.trim() || '未命名';
+                            const desc = document.getElementById('add_fish_desc').value.trim();
+                            const detail = document.getElementById('add_fish_detail').value.trim();
+                            const fileInput = document.getElementById('add_fish_logo');
+                            let logo = '';
+                            if (fileInput.files && fileInput.files[0]) {
+                                logo = await compressImage(fileInput.files[0], 600, 0.7);
+                            }
+                            DATA.fishery.push({ logo, name, desc, detail });
+                            await saveToSupabase();
+                            renderFishery();
+                            showToast('✅ 水产品已添加', 'success');
+                            closeModal();
+                        } catch (e) {
+                            showToast('❌ 添加失败：' + e.message, 'error');
+                        }
+                    } },
+                enterprise: { label: '企业', fields: `
+                        <div class="field"><label>企业名称</label><input type="text" id="add_ent_name" placeholder="企业名称" /></div>
+                        <div class="field"><label>简介</label><input type="text" id="add_ent_intro" placeholder="企业简介" /></div>
+                        <div class="field"><label>电话</label><input type="text" id="add_ent_phone" placeholder="联系电话" /></div>
+                        <div class="field"><label>地址</label><input type="text" id="add_ent_address" placeholder="地址" /></div>
+                        <div class="field"><label>图片</label><input type="file" id="add_ent_img" accept="image/*" /></div>
+                    `, save: async () => {
+                        try {
+                            const name = document.getElementById('add_ent_name').value.trim() || '未命名企业';
+                            const intro = document.getElementById('add_ent_intro').value.trim();
+                            const phone = document.getElementById('add_ent_phone').value.trim();
+                            const address = document.getElementById('add_ent_address').value.trim();
+                            const fileInput = document.getElementById('add_ent_img');
+                            let img = '';
+                            if (fileInput.files && fileInput.files[0]) {
+                                img = await compressImage(fileInput.files[0], 800, 0.7);
+                            }
+                            DATA.enterprises.push({ img, name, intro, phone, address });
+                            await saveToSupabase();
+                            renderEnterprises();
+                            showToast('✅ 企业已添加', 'success');
+                            closeModal();
+                        } catch (e) {
+                            showToast('❌ 添加失败：' + e.message, 'error');
+                        }
+                    } },
+                factory: { label: '厂房', fields: `
+                        <div class="field"><label>地点</label><input type="text" id="add_fac_location" placeholder="地点" /></div>
+                        <div class="field"><label>电话</label><input type="text" id="add_fac_phone" placeholder="联系电话" /></div>
+                        <div class="field"><label>面积</label><input type="text" id="add_fac_area" placeholder="如：1200㎡" /></div>
+                        <div class="field"><label>描述</label><input type="text" id="add_fac_desc" placeholder="补充说明" /></div>
+                        <div class="field"><label>图片</label><input type="file" id="add_fac_img" accept="image/*" /></div>
+                    `, save: async () => {
+                        try {
+                            const location = document.getElementById('add_fac_location').value.trim() || '未填写';
+                            const phone = document.getElementById('add_fac_phone').value.trim();
+                            const area = document.getElementById('add_fac_area').value.trim();
+                            const desc = document.getElementById('add_fac_desc').value.trim();
+                            const fileInput = document.getElementById('add_fac_img');
+                            let img = '';
+                            if (fileInput.files && fileInput.files[0]) {
+                                img = await compressImage(fileInput.files[0], 800, 0.7);
+                            }
+                            DATA.factories.push({ img, location, phone, area, desc });
+                            await saveToSupabase();
+                            renderFactories();
+                            showToast('✅ 厂房已添加', 'success');
+                            closeModal();
+                        } catch (e) {
+                            showToast('❌ 添加失败：' + e.message, 'error');
+                        }
+                    } },
+            };
+            const config = map[type];
+            if (!config) return;
+            showEditModal(`添加${config.label}`, config.fields, config.save);
+        }
+
+        function renderAll() {
+            renderCarousel();
+            renderLinks();
+            renderAchievements();
+            renderAgriculture();
+            renderFishery();
+            renderEnterprises();
+            renderFactories();
+            renderMap();
+        }
+
+        async function init() {
+            try {
+                await initData();
+                checkSettingsAuth();
+                renderAll();
+                startCarousel();
+                switchPage('home');
+                document.querySelector('.nav-item[data-page="home"]').classList.add('active');
+                showToast('✅ 页面加载完成', 'success');
+                console.log('🌾 筑梦乡村实践团 已启动（支持链接编辑）');
+            } catch (e) {
+                console.error(e);
+                showToast('⚠️ 初始化失败，请刷新重试', 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
